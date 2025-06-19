@@ -14,8 +14,9 @@ import {
   theme,
 } from "antd";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { redirect, usePathname } from "next/navigation";
 
+import { getItem } from "@/app/ui/shared";
 import TemplateFooter from "@/app/ui/TemplateFooter";
 import TemplateHeader from "@/app/ui/TemplateHeader";
 
@@ -31,27 +32,18 @@ export interface MenuInfo {
   domEvent: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>;
 }
 
-export const getItem = (
-  label: React.ReactNode,
-  key: React.Key,
-  icon?: React.ReactNode,
-  children?: MenuItem[],
-): MenuItem => {
-  return {
-    children,
-    icon,
-    key,
-    label,
-  } as MenuItem;
-};
-
 interface PageLayoutProps {
   children: React.ReactNode;
   headerMenuItems?: MenuProps["items"];
+  definedHeaderMenuKey?: string;
   siderMenuItems?: MenuProps["items"];
   onClickHeaderMenu?: (info: MenuInfo) => void;
   onClickSiderMenu?: (info: MenuInfo) => void;
 }
+
+const defaultSiderMenuItems: MenuItem[] = [
+  getItem("Home", "home", <HomeOutlined />),
+];
 
 const avatarMenuItems: MenuItem[] = [
   {
@@ -63,6 +55,7 @@ const avatarMenuItems: MenuItem[] = [
 const TemplatePageLayout = ({
   children,
   headerMenuItems,
+  definedHeaderMenuKey,
   siderMenuItems,
   onClickHeaderMenu,
   onClickSiderMenu,
@@ -76,13 +69,23 @@ const TemplatePageLayout = ({
   const version = packageJson.version;
 
   const breadcrumbList = useMemo(() => {
-    const homeItem = { href: "/", title: <HomeOutlined /> };
+    const homeItem =
+      pathname === "/"
+        ? { title: <HomeOutlined /> }
+        : { href: "/", title: <HomeOutlined /> };
     const splitPath = pathname?.split("/") || [];
-    const pathList = splitPath
-      .filter((i) => !!i)
-      .map((i) => {
+    const filteredSplitPath = splitPath.filter((i) => !!i);
+    const pathList = filteredSplitPath.map((i, index) => {
+      if (index === filteredSplitPath.length - 1) {
         return { title: i };
-      });
+      }
+      const paths = pathname?.split(`/${i}`) || [];
+      if (paths[0]) {
+        return { href: `/${paths[0]}`, title: i };
+      } else {
+        return { href: `/${i}`, title: i };
+      }
+    });
     return [homeItem, ...pathList];
   }, [pathname]);
 
@@ -108,7 +111,7 @@ const TemplatePageLayout = ({
                 </>
               ),
               duration: 0,
-              message: "Refresh to update the Calculator",
+              message: "Refresh to update the App",
             });
           }
         });
@@ -119,11 +122,34 @@ const TemplatePageLayout = ({
     return () => clearInterval(interval);
   }, []);
 
+  const resultSiderMenuItems = useMemo(() => {
+    let result = pathname === "/" ? [] : defaultSiderMenuItems;
+    if (siderMenuItems) {
+      result = [
+        ...result,
+        { type: "divider" },
+        ...siderMenuItems,
+      ] as MenuItem[];
+    }
+    return result;
+  }, [siderMenuItems, pathname]);
+
+  const onClickResultSiderMenu = (info: MenuInfo) => {
+    const key = info?.key;
+    if (key === "home") {
+      redirect("/");
+    }
+    if (onClickSiderMenu) {
+      onClickSiderMenu(info);
+    }
+  };
+
   return (
     <Layout>
       <TemplateHeader
         version={version}
         menuItems={headerMenuItems}
+        definedMenuKey={definedHeaderMenuKey}
         onClickMenu={onClickHeaderMenu}
         logoutTooltipMessage="Test message"
         avatarMenuItems={avatarMenuItems}
@@ -148,10 +174,8 @@ const TemplatePageLayout = ({
               defaultSelectedKeys={["1"]}
               defaultOpenKeys={["sub1"]}
               style={{ borderRadius: borderRadiusLG, height: "100%" }}
-              items={siderMenuItems}
-              onClick={(i) =>
-                onClickSiderMenu ? onClickSiderMenu(i) : undefined
-              }
+              items={resultSiderMenuItems}
+              onClick={onClickResultSiderMenu}
             />
           </Sider>
           <Layout>
@@ -174,11 +198,12 @@ const TemplatePageLayout = ({
               />
             </Header>
             <Content
-              className="p-6 min-h-72"
+              className="p-6"
               style={{
                 background: colorBgContainer,
                 borderRadius: borderRadiusLG,
                 margin: "1px 0 0 0",
+                minHeight: "300px",
               }}
             >
               {children}
