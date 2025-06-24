@@ -11,6 +11,7 @@ import {
   Menu,
   MenuProps,
   notification,
+  Row,
   theme,
 } from "antd";
 import Link from "next/link";
@@ -39,6 +40,7 @@ interface PageLayoutProps {
   siderMenuItems?: MenuProps["items"];
   onClickHeaderMenu?: (info: MenuInfo) => void;
   onClickSiderMenu?: (info: MenuInfo) => void;
+  contentHeader?: React.ReactNode | string;
 }
 
 const defaultSiderMenuItems: MenuItem[] = [
@@ -59,6 +61,7 @@ const TemplatePageLayout = ({
   siderMenuItems,
   onClickHeaderMenu,
   onClickSiderMenu,
+  contentHeader = "",
 }: PageLayoutProps) => {
   const [collapsed, setCollapsed] = useState(false);
   const pathname = usePathname();
@@ -186,16 +189,21 @@ const TemplatePageLayout = ({
                 padding: 0,
               }}
             >
-              <Button
-                type="text"
-                icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-                onClick={() => setCollapsed(!collapsed)}
-                style={{
-                  fontSize: "16px",
-                  height: 64,
-                  width: 64,
-                }}
-              />
+              <Row>
+                <Button
+                  type="text"
+                  icon={
+                    collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />
+                  }
+                  onClick={() => setCollapsed(!collapsed)}
+                  style={{
+                    fontSize: "16px",
+                    height: 64,
+                    width: 64,
+                  }}
+                />
+                <div className="ml-4 font-black">{contentHeader}</div>
+              </Row>
             </Header>
             <Content
               className="p-6"

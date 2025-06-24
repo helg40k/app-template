@@ -15,6 +15,7 @@ const Page = () => {
       <TemplatePageLayout
         definedHeaderMenuKey="play"
         onClickSiderMenu={onClickSiderMenu}
+        contentHeader="Test"
       >
         <p>Hello User!</p>
       </TemplatePageLayout>
