@@ -1,7 +1,7 @@
-import { FieldValue } from "firebase-admin/firestore";
+import { serverTimestamp } from "firebase/firestore";
 
 const getDocumentCreationBase = (_id: string | number) => {
-  const now = FieldValue.serverTimestamp();
+  const now = serverTimestamp();
   return {
     _createdAt: now,
     _id,
