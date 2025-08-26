@@ -1,20 +1,28 @@
 import { useEffect, useState } from "react";
 import { notification } from "antd";
+import {
+  DocumentSnapshot,
+  OrderByDirection,
+  WhereFilterOp,
+} from "firebase/firestore";
 
 import { Entity } from "@/app/lib/definitions";
 import useUser from "@/app/lib/hooks/useUser";
 import createDocument from "@/app/lib/services/firebase/helpers/createDocument";
 import deleteDocument from "@/app/lib/services/firebase/helpers/deleteDocument";
-import getCollectionData from "@/app/lib/services/firebase/helpers/getCollectionData";
+import getCollectionData, {
+  Props,
+} from "@/app/lib/services/firebase/helpers/getCollectionData";
+import { NEW_ENTITY_TEMP_ID } from "@/app/lib/services/firebase/helpers/getDocumentCreationBase";
 import updateDocument from "@/app/lib/services/firebase/helpers/updateDocument";
 
 import "@ant-design/v5-patch-for-react-19";
 
-const options = {
-  filters: undefined,
-  limit: undefined,
-  pagination: undefined,
-  sort: undefined,
+type EntityProps = {
+  filters?: [string, WhereFilterOp, any][] | undefined;
+  limit?: number | undefined;
+  pagination?: DocumentSnapshot<any, any> | unknown[] | undefined;
+  sort?: [string, OrderByDirection] | undefined;
 };
 
 const useEntities = () => {
@@ -35,6 +43,16 @@ const useEntities = () => {
   const checkEmail = () => {
     if (!email) {
       throw new Error("Unauthorized modifying!");
+    }
+  };
+
+  const prepareToSave = (entity: any) => {
+    if (entity) {
+      Object.keys(entity)
+        .filter((key) => entity[key] === undefined)
+        .forEach((key) => {
+          entity[key] = null;
+        });
     }
   };
 
@@ -68,15 +86,23 @@ const useEntities = () => {
 
   const loadEntities = async <T extends Entity>(
     dbRef: string | null | undefined,
+    options?: EntityProps,
   ): Promise<T[]> => {
     if (!dbRef) {
       return [];
     }
     const type = dbRef as string;
 
+    const opts: Props = {
+      filters: options?.filters,
+      limit: options?.limit,
+      pagination: options?.pagination,
+      sort: options?.sort,
+    };
+
     try {
       setLoading(true);
-      return (await getCollectionData(type, options)) as T[];
+      return (await getCollectionData(type, opts)) as T[];
     } catch (err: any) {
       console.error(err);
       setError(err);
@@ -108,7 +134,8 @@ const useEntities = () => {
       const id = entity._id;
 
       entity._updatedBy = email as string;
-      if (id) {
+      prepareToSave(entity);
+      if (id && NEW_ENTITY_TEMP_ID !== id) {
         return (await updateDocument(type, id, entity)) as T;
       } else {
         entity._createdBy = email as string;

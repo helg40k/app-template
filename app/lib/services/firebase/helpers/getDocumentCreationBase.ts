@@ -1,5 +1,7 @@
 import { serverTimestamp } from "firebase/firestore";
 
+export const NEW_ENTITY_TEMP_ID = "new";
+
 const getDocumentCreationBase = (_id: string | number) => {
   const now = serverTimestamp();
   return {

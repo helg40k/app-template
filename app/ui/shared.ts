@@ -4,9 +4,9 @@ import { Timestamp } from "firebase/firestore";
 import { mergeWith } from "lodash";
 
 import { Entity } from "@/app/lib/definitions";
-import getDocumentCreationBase from "@/app/lib/services/firebase/helpers/getDocumentCreationBase";
-
-export const NEW_ENTITY_TEMP_ID = "new";
+import getDocumentCreationBase, {
+  NEW_ENTITY_TEMP_ID,
+} from "@/app/lib/services/firebase/helpers/getDocumentCreationBase";
 
 export type MenuItem = Required<MenuProps>["items"][number];
 
@@ -211,6 +211,6 @@ export const equalDeep = (
   return a === b;
 };
 
-export const getNewEntity = (): Entity => {
-  return getDocumentCreationBase(NEW_ENTITY_TEMP_ID) as Entity;
+export const getNewEntity = <T extends Entity>(): T => {
+  return getDocumentCreationBase(NEW_ENTITY_TEMP_ID) as T;
 };
