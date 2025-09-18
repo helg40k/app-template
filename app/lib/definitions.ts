@@ -9,6 +9,16 @@ export const CollectionRegistry = {
   Test: "tests",
 } as const;
 
+export const EntityStatusRegistry = {
+  ACTIVE: "active",
+  DISABLED: "disabled",
+  OBSOLETE: "obsolete",
+} as const;
+export const entityStatuses = Object.values(EntityStatusRegistry) as Array<
+  (typeof EntityStatusRegistry)[keyof typeof EntityStatusRegistry]
+>;
+export type EntityStatus = (typeof entityStatuses)[number];
+
 export interface Entity {
   _id: string;
   _createdAt: firebase.firestore.Timestamp;
@@ -17,6 +27,7 @@ export interface Entity {
   _updatedBy: string;
   _isUpdated: boolean;
   name: string;
+  status: EntityStatus;
 }
 
 export interface Test extends Entity {
