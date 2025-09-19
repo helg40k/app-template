@@ -1,3 +1,6 @@
+// Import jest-dom matchers
+import '@testing-library/jest-dom';
+
 // Mock Firebase functions
 jest.mock('firebase/firestore', () => ({
   collection: jest.fn(),
